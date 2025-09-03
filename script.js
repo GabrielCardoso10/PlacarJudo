@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- DOM Elements ---
     const timerDisplay = document.querySelector('.timer');
     const osaekomiTimerDisplay = document.querySelector('.osaekomi-timer');
     const goldenScoreIndicator = document.querySelector('.golden-score-indicator');
@@ -18,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const helpModal = document.getElementById('help-modal');
     const closeHelpBtn = document.getElementById('close-help-btn');
 
-    // --- State and Timers ---
     let mainTimeLeft = 240;
     let mainTimeElapsed = 0;
     let osaekomiTimeLeft = 0;
@@ -32,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getCompetitorPanel = (color) => document.querySelector(`.competitor-strip.${color}-strip`);
 
-    // --- State Management (localStorage) ---
     function saveState() {
         const state = {
             c1: { name: c1Name.innerHTML, ippon: getCompetitorPanel('white').querySelector('.ippon').textContent, wazari: getCompetitorPanel('white').querySelector('.wazari').textContent, yuko: getCompetitorPanel('white').querySelector('.yuko').textContent, shidos: getCompetitorPanel('white').querySelectorAll('.shido.active').length },
@@ -73,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Match Logic ---
     function endMatch(winnerColor) {
         if (isMatchOver) return;
         isMatchOver = true;
@@ -104,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
     
-    // --- Timer Functions ---
     const formatTime = (seconds) => `${Math.floor(seconds/60)}:${(seconds%60).toString().padStart(2,'0')}`;
     const updateMainTimerDisplay = () => timerDisplay.textContent = formatTime(mainTimeLeft);
     const updateGSTimerDisplay = () => timerDisplay.textContent = formatTime(mainTimeElapsed);
@@ -175,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const progressPercentage = Math.min((osaekomiTimeLeft / 20) * 100, 100);
             progressBar.style.width = `${progressPercentage}%`;
 
-            // NOVO: Adiciona Yuko aos 5 segundos
             if (osaekomiTimeLeft === 5) {
                 addScore(osaekomiCompetitor, 'yuko');
             }
@@ -183,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (osaekomiTimeLeft === 10) {
                 isOsaekomiScoring = true;
                 addScore(osaekomiCompetitor, 'wazari');
+                removeScore(osaekomiCompetitor, 'yuko');
                 isOsaekomiScoring = false;
             }
         }, 1000);
@@ -285,7 +280,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Event Listeners ---
     document.addEventListener('keydown', (event) => {
         if (event.target.isContentEditable) return;
         const key = event.key.toLowerCase();
