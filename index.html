@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placar de Judô - LIGOJU</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&family=Roboto:wght@300;400;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="scoreboard-container">
+        <div class="competitor-strip white-strip">
+            <div class="osaekomi-progress-bar"></div>
+            <div class="strip-content">
+                <div class="name" id="c1-name" contenteditable="true" data-placeholder="NOME ATLETA 1"></div>
+                <div class="score-penalties">
+                    <div class="score">
+                        <div class="ippon">0</div>
+                        <div class="wazari">0</div>
+                        <div class="yuko">0</div>
+                    </div>
+                    <div class="penalties">
+                        <div class="shido"></div><div class="shido"></div><div class="shido"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="competitor-strip blue-strip">
+            <div class="osaekomi-progress-bar"></div>
+            <div class="strip-content">
+                <div class="name" id="c2-name" contenteditable="true" data-placeholder="NOME ATLETA 2"></div>
+                <div class="score-penalties">
+                    <div class="score">
+                        <div class="ippon">0</div>
+                        <div class="wazari">0</div>
+                        <div class="yuko">0</div>
+                    </div>
+                    <div class="penalties">
+                        <div class="shido"></div><div class="shido"></div><div class="shido"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timer-section">
+            <div class="top-bar">
+                <img src="/image/logo.png" alt="Logo LIGOJU" class="logo">
+                <div class="top-bar-controls">
+                    <button id="help-btn" title="Ver Legenda de Comandos">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
+                    </button>
+                    <button id="settings-btn" title="Configurações de Tempo">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61-.25-1.17.59-1.69-.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19-.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69-.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+                    </button>
+                    <button id="fullscreen-btn" title="Alternar Tela Cheia">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="timer-display-area">
+                <div class="main-timer">
+                    <div class="timer">4:00</div>
+                    <div class="osaekomi-timer">00</div>
+                </div>
+                <div class="golden-score-indicator">GOLDEN SCORE</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Configurar Tempo</h2>
+            <div class="input-group">
+                <label for="minutes-input">Minutos:</label>
+                <input type="number" id="minutes-input" min="0" max="59" value="4">
+            </div>
+            <div class="input-group">
+                <label for="seconds-input">Segundos:</label>
+                <input type="number" id="seconds-input" min="0" max="59" value="0">
+            </div>
+            <button id="save-time-btn">Salvar</button>
+            <button id="close-settings-btn" class="close-btn">&times;</button>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal-overlay">
+        <div class="modal-content help-content">
+            <h2>Legenda de Comandos</h2>
+            <div class="legend-section">
+                <h3>Controles Gerais da Luta</h3>
+                <p><kbd>P</kbd> - Inicia/Pausa o cronômetro (normal e Golden Score).</p>
+                <p><kbd>R</kbd> - Reseta completamente o placar para uma nova luta.</p>
+                <p><kbd>O</kbd> - Inicia Osaekomi para o Competidor 1 (Branco).</p>
+                <p><kbd>L</kbd> - Inicia Osaekomi para o Competidor 2 (Azul).</p>
+                <p><kbd>Q</kbd> - Cancela/Interrompe a contagem de Osaekomi.</p>
+            </div>
+            <div class="legend-section">
+                <h3>Competidor 1 (Faixa Branca)</h3>
+                <p><kbd>A</kbd> / <kbd>W</kbd> / <kbd>S</kbd> - Adiciona Ippon / Waza-ari / Yuko.</p>
+                <p><kbd>D</kbd> - Adiciona Shido.</p>
+                <p><kbd>Shift</kbd> + <kbd>A</kbd> / <kbd>W</kbd> / <kbd>S</kbd> - Remove Ippon / Waza-ari / Yuko.</p>
+                <p><kbd>Z</kbd> - Remove o último Shido.</p>
+            </div>
+            <div class="legend-section">
+                <h3>Competidor 2 (Faixa Azul)</h3>
+                <p><kbd>↓</kbd> / <kbd>↑</kbd> / <kbd>←</kbd> - Adiciona Ippon / Waza-ari / Yuko.</p>
+                <p><kbd>→</kbd> - Adiciona Shido.</p>
+                <p><kbd>Shift</kbd> + <kbd>↓</kbd> / <kbd>↑</kbd> / <kbd>←</kbd> - Remove Ippon / Waza-ari / Yuko.</p>
+                <p><kbd>M</kbd> - Remove o último Shido.</p>
+            </div>
+            <button id="close-help-btn" class="close-btn">&times;</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
