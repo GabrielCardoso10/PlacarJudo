@@ -261,12 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
             shidos[0].classList.add('active');
             const shidoCount = panel.querySelectorAll('.shido.active').length;
             const winner = competitor === 'white' ? 'blue' : 'white';
-
-            if (shidoCount >= 3) {
-                endMatch(winner);
-            } else if (isGoldenScore) {
-                endMatch(winner);
-            }
         }
         saveState();
     }
@@ -342,3 +336,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     loadState();
 });
+
