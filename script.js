@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const helpBtn = document.getElementById('help-btn');
     const helpModal = document.getElementById('help-modal');
     const closeHelpBtn = document.getElementById('close-help-btn');
+    const osaekomiBtnWhite = document.getElementById('osaekomi-btn-white');
+    const osaekomiBtnBlue = document.getElementById('osaekomi-btn-blue');
+    const shidoBoxes = document.querySelectorAll('.shido');
 
     let mainTimeLeft = 240;
     let mainTimeElapsed = 0;
@@ -26,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let isMatchOver = false;
     let osaekomiCompetitor = null;
     let isGoldenScore = false;
-    let isOsaekomiScoring = false;
 
     const getCompetitorPanel = (color) => document.querySelector(`.competitor-strip.${color}-strip`);
 
@@ -45,27 +47,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const stateJSON = localStorage.getItem('judoScoreboardState');
             if (!stateJSON) return;
             const state = JSON.parse(stateJSON);
-            minutesInput.value = state.timeSettings.minutes;
-            secondsInput.value = state.timeSettings.seconds;
-            mainTimeLeft = parseInt(state.timeSettings.minutes) * 60 + parseInt(state.timeSettings.seconds);
+
+            if (state.timeSettings) {
+                minutesInput.value = state.timeSettings.minutes;
+                secondsInput.value = state.timeSettings.seconds;
+            }
+            mainTimeLeft = parseInt(minutesInput.value) * 60 + parseInt(secondsInput.value);
             updateMainTimerDisplay();
+
             ['white', 'blue'].forEach(color => {
                 const competitorKey = color === 'white' ? 'c1' : 'c2';
                 const data = state[competitorKey];
-                const panel = getCompetitorPanel(color);
-                panel.querySelector('.name').innerHTML = data.name;
-                panel.querySelector('.ippon').textContent = data.ippon;
-                panel.querySelector('.wazari').textContent = data.wazari;
-                panel.querySelector('.yuko').textContent = data.yuko;
-                panel.querySelectorAll('.shido').forEach((shido, index) => { shido.classList.toggle('active', index < data.shidos); });
+                if (data) {
+                    const panel = getCompetitorPanel(color);
+                    panel.querySelector('.name').innerHTML = data.name;
+                    panel.querySelector('.ippon').textContent = data.ippon;
+                    panel.querySelector('.wazari').textContent = data.wazari;
+                    panel.querySelector('.yuko').textContent = data.yuko;
+                    panel.querySelectorAll('.shido').forEach((shido, index) => { shido.classList.toggle('active', index < data.shidos); });
+                }
             });
+            
             isGoldenScore = state.isGoldenScore || false;
             if (isGoldenScore) {
                 goldenScoreIndicator.classList.add('active');
                 updateGSTimerDisplay();
             }
         } catch (error) {
-            console.error("Erro ao carregar o estado salvo. Resetando para o padrão.", error);
+            console.error("Erro", error);
             localStorage.removeItem('judoScoreboardState');
         }
     }
@@ -78,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isMainTimerRunning = false;
         if(isOsaekomiTimerRunning) resetOsaekomiVisuals();
         isOsaekomiTimerRunning = false;
-        isOsaekomiScoring = false;
+        
         if (winnerColor) {
             const winnerPanel = getCompetitorPanel(winnerColor);
             winnerPanel.classList.add('winner-flash');
@@ -86,51 +95,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         saveState();
     }
-
-    function checkTie() {
-        const c1_i = parseInt(getCompetitorPanel('white').querySelector('.ippon').textContent);
-        const c2_i = parseInt(getCompetitorPanel('blue').querySelector('.ippon').textContent);
-        if (c1_i > 0 || c2_i > 0) return false;
-        const c1_w = parseInt(getCompetitorPanel('white').querySelector('.wazari').textContent);
-        const c2_w = parseInt(getCompetitorPanel('blue').querySelector('.wazari').textContent);
-        const c1_y = parseInt(getCompetitorPanel('white').querySelector('.yuko').textContent);
-        const c2_y = parseInt(getCompetitorPanel('blue').querySelector('.yuko').textContent);
-        if (c1_w !== c2_w) return false;
-        if (c1_y !== c2_y) return false;
-        return true;
-    }
     
     const formatTime = (seconds) => `${Math.floor(seconds/60)}:${(seconds%60).toString().padStart(2,'0')}`;
     const updateMainTimerDisplay = () => timerDisplay.textContent = formatTime(mainTimeLeft);
     const updateGSTimerDisplay = () => timerDisplay.textContent = formatTime(mainTimeElapsed);
     const updateOsaekomiTimerDisplay = () => osaekomiTimerDisplay.textContent = osaekomiTimeLeft.toString().padStart(2, '0');
 
-    function handleEndOfRegularTime() {
-        if (checkTie()) {
-            setupGoldenScore();
-        } else {
-            const c1_w = parseInt(getCompetitorPanel('white').querySelector('.wazari').textContent);
-            const c2_w = parseInt(getCompetitorPanel('blue').querySelector('.wazari').textContent);
-            const c1_y = parseInt(getCompetitorPanel('white').querySelector('.yuko').textContent);
-            const c2_y = parseInt(getCompetitorPanel('blue').querySelector('.yuko').textContent);
-            if (c1_w > c2_w) endMatch('white');
-            else if (c2_w > c1_w) endMatch('blue');
-            else if (c1_y > c2_y) endMatch('white');
-            else if (c2_y > c1_y) endMatch('blue');
-        }
-    }
-
-    function setupGoldenScore() {
-        isGoldenScore = true;
-        goldenScoreIndicator.classList.add('active');
-        mainTimeElapsed = 0;
-        updateGSTimerDisplay();
-        saveState();
-    }
-
     function startStopMainTimer() {
         if (isMatchOver) return;
-
+        
         isMainTimerRunning = !isMainTimerRunning;
         if (isMainTimerRunning) {
             const timerFunction = isGoldenScore ? () => {
@@ -143,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     clearInterval(mainTimerInterval);
                     isMainTimerRunning = false;
-                    handleEndOfRegularTime();
                 }
             };
             mainTimerInterval = setInterval(timerFunction, 1000);
@@ -152,28 +124,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function startGoldenScore() {
+        if (isMatchOver || mainTimeLeft > 0) return; 
+        isGoldenScore = true;
+        goldenScoreIndicator.classList.add('active');
+        mainTimeElapsed = 0;
+        updateGSTimerDisplay();
+        saveState();
+    }
+
     function startOsaekomi(competitor) {
         if (isMatchOver || isOsaekomiTimerRunning) return;
         
         osaekomiCompetitor = competitor;
         isOsaekomiTimerRunning = true;
         osaekomiTimeLeft = 0;
-        updateOsaekomiTimerDisplay();
-        osaekomiTimerDisplay.classList.add('active');
         
         const progressBar = getCompetitorPanel(competitor).querySelector('.osaekomi-progress-bar');
-
         osaekomiTimerInterval = setInterval(() => {
             osaekomiTimeLeft++;
-            updateOsaekomiTimerDisplay();
             
             const progressPercentage = Math.min((osaekomiTimeLeft / 20) * 100, 100);
             progressBar.style.width = `${progressPercentage}%`;
 
-            if (osaekomiTimeLeft === 5) {
-                addScore(osaekomiCompetitor, 'yuko');
-            }
-            
+            if (osaekomiTimeLeft === 5) addScore(osaekomiCompetitor, 'yuko');
             if (osaekomiTimeLeft === 10) {
                 isOsaekomiScoring = true;
                 addScore(osaekomiCompetitor, 'wazari');
@@ -182,9 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 1000);
     }
-    
+
+
     function resetOsaekomiVisuals() {
-        osaekomiTimerDisplay.classList.remove('active');
         document.querySelectorAll('.osaekomi-progress-bar').forEach(bar => {
             bar.style.transition = 'width 0s';
             bar.style.width = '0%';
@@ -196,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isOsaekomiTimerRunning) return;
         clearInterval(osaekomiTimerInterval);
         isOsaekomiTimerRunning = false;
-        isOsaekomiScoring = false;
         osaekomiCompetitor = null;
         resetOsaekomiVisuals();
     }
@@ -207,7 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(osaekomiTimerInterval);
         isMainTimerRunning = false;
         isOsaekomiTimerRunning = false;
-        isOsaekomiScoring = false;
         osaekomiCompetitor = null;
         isGoldenScore = false;
         
@@ -229,17 +201,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const scoreElement = panel.querySelector(`.${type}`);
         scoreElement.textContent = parseInt(scoreElement.textContent) + 1;
 
-        if (isGoldenScore) {
-            endMatch(competitor);
-            return;
-        }
-
-        if (type === 'wazari' && parseInt(scoreElement.textContent) >= 2 && !isOsaekomiScoring) {
-            panel.querySelector('.ippon').textContent = '1';
-            endMatch(competitor);
-        } else if (type === 'ippon' && parseInt(scoreElement.textContent) > 0) {
+        if (type === 'ippon') {
             endMatch(competitor);
         }
+        
         saveState();
     }
     
@@ -256,11 +221,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function addShido(competitor) {
         if (isMatchOver) return;
         const panel = getCompetitorPanel(competitor);
-        const shidos = panel.querySelectorAll('.shido:not(.active)');
-        if (shidos.length > 0) {
-            shidos[0].classList.add('active');
-            const shidoCount = panel.querySelectorAll('.shido.active').length;
-            const winner = competitor === 'white' ? 'blue' : 'white';
+        const shido = panel.querySelector('.shido:not(.active)');
+        if (shido) {
+            shido.classList.add('active');
         }
         saveState();
     }
@@ -274,14 +237,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    timerDisplay.addEventListener('click', () => {
+        startStopMainTimer();
+    });
+
+    osaekomiBtnWhite.addEventListener('click', () => {
+        if (!isOsaekomiTimerRunning) {
+            startOsaekomi('blue');
+        } else if (osaekomiCompetitor === 'blue') {
+            resetOsaekomi();
+        }
+    });
+    osaekomiBtnBlue.addEventListener('click', () => {
+        if (!isOsaekomiTimerRunning) {
+            startOsaekomi('white');
+        } else if (osaekomiCompetitor === 'white++++++++++++++++') {
+            resetOsaekomi();
+        }
+    });
+
+
+    shidoBoxes.forEach(box => {
+        box.addEventListener('click', () => {
+            const competitor = box.closest('.strip-content').parentElement.classList.contains('white-strip') ? 'white' : 'blue';
+            if (box.classList.contains('active')) {
+                removeShido(competitor);
+            } else {
+                addShido(competitor);
+            }
+        });
+    });
+
     document.addEventListener('keydown', (event) => {
         if (event.target.isContentEditable) return;
         const key = event.key.toLowerCase();
         
         if (key === 'o') { startOsaekomi('white'); return; }
         if (key === 'l') { startOsaekomi('blue'); return; }
-        if (key === 'g' && !isMatchOver && mainTimeLeft === 0 && checkTie()) {
-            setupGoldenScore();
+        if (key === 'g' && !isMatchOver && mainTimeLeft === 0) {
+            startGoldenScore();
             return;
         }
 
@@ -336,4 +330,3 @@ document.addEventListener('DOMContentLoaded', () => {
     
     loadState();
 });
-
