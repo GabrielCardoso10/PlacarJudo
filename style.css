@@ -110,6 +110,7 @@ body {
     border-radius: 4px;
     background-color: #eee;
     transition: background-color 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
 }
 .blue-strip .shido { border-color: var(--text-light); background-color: rgba(0,0,0,0.2); }
 .shido.active { background-color: var(--cbj-gold); border-color: var(--cbj-gold); }
@@ -169,6 +170,7 @@ body {
     font-weight: 1000;
     color: var(--text-light);
     line-height: 1;
+    cursor: pointer;
 }
 
 .osaekomi-timer {
@@ -270,4 +272,32 @@ kbd {
     margin: 0 2px;
     display: inline-block;
     color: #333;
+}
+
+.osaekomi-btn {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 1.2em;
+    font-weight: 700;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: 2px solid;
+    cursor: pointer;
+    background-color: transparent;
+    transition: all 0.2s ease;
+}
+#osaekomi-btn-white {
+    color: var(--text-dark);
+    border-color: var(--text-dark);
+}
+#osaekomi-btn-white:hover {
+    background-color: var(--text-dark);
+    color: var(--text-light);
+}
+#osaekomi-btn-blue {
+    color: var(--text-blue);
+    border-color: var(--text-light);
+}
+#osaekomi-btn-blue:hover {
+    background-color: var(--text-light);
+    color: var(--cbj-blue);
 }
