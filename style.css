@@ -27,7 +27,7 @@ body {
     gap: 0;
 }
 
-/* --- COMPETIDORES --- */
+/* competidores */
 .competitor-strip {
     display: flex;
     box-sizing: border-box;
@@ -70,7 +70,7 @@ body {
     padding: 15px 40px;
     box-sizing: border-box;
 }
-
+/*nome*/
 .name {
     font-family: 'Roboto Condensed', sans-serif;
     font-size: 3.5em;
@@ -103,6 +103,7 @@ body {
     line-height: 1;
 }
 
+/*penalidades*/
 .penalties { display: flex; gap: 8px; }
 .shido {
     width: 35px; height: 45px;
@@ -115,7 +116,7 @@ body {
 .blue-strip .shido { border-color: var(--text-light); background-color: rgba(0,0,0,0.2); }
 .shido.active { background-color: var(--cbj-gold); border-color: var(--cbj-gold); }
 
-/* --- CRONÔMETRO --- */
+/*crônometro*/
 .timer-section {
     background-color: var(--bg-dark);
     color: var(--text-light);
