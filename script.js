@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-
+    // seleção de elemntos dom
     const timerDisplay = document.querySelector('.timer');
     const osaekomiTimerDisplay = document.querySelector('.osaekomi-timer');
     const goldenScoreIndicator = document.querySelector('.golden-score-indicator');
@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const osaekomiBtnWhite = document.getElementById('osaekomi-btn-white');
     const osaekomiBtnBlue = document.getElementById('osaekomi-btn-blue');
     const shidoBoxes = document.querySelectorAll('.shido');
+    const endMatchBtn = document.getElementById('end-match-btn');
 
+    //estados do placar
     let mainTimeLeft = 240;
     let mainTimeElapsed = 0;
     let osaekomiTimeLeft = 0;
@@ -32,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getCompetitorPanel = (color) => document.querySelector(`.competitor-strip.${color}-strip`);
 
+    //salvar estado do placar no navegador pra quando der reload sem querer não perder o estado
     function saveState() {
         const state = {
             c1: { name: c1Name.innerHTML, ippon: getCompetitorPanel('white').querySelector('.ippon').textContent, wazari: getCompetitorPanel('white').querySelector('.wazari').textContent, yuko: getCompetitorPanel('white').querySelector('.yuko').textContent, shidos: getCompetitorPanel('white').querySelectorAll('.shido.active').length },
@@ -42,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('judoScoreboardState', JSON.stringify(state));
     }
 
+    //carregar estado
     function loadState() {
         try {
             const stateJSON = localStorage.getItem('judoScoreboardState');
@@ -79,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    //finalizar a luta
     function endMatch(winnerColor) {
         if (isMatchOver) return;
         isMatchOver = true;
@@ -96,13 +101,19 @@ document.addEventListener('DOMContentLoaded', () => {
         saveState();
     }
     
+    //formatação do tempo de luta
     const formatTime = (seconds) => `${Math.floor(seconds/60)}:${(seconds%60).toString().padStart(2,'0')}`;
     const updateMainTimerDisplay = () => timerDisplay.textContent = formatTime(mainTimeLeft);
     const updateGSTimerDisplay = () => timerDisplay.textContent = formatTime(mainTimeElapsed);
     const updateOsaekomiTimerDisplay = () => osaekomiTimerDisplay.textContent = osaekomiTimeLeft.toString().padStart(2, '0');
 
+    //inicia o cronômetro da luta
     function startStopMainTimer() {
         if (isMatchOver) return;
+        
+        if (mainTimeLeft === 0 && !isGoldenScore && !isMainTimerRunning) {
+            startGoldenScore();
+        }
         
         isMainTimerRunning = !isMainTimerRunning;
         if (isMainTimerRunning) {
@@ -124,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    //iniciar o golden score
     function startGoldenScore() {
         if (isMatchOver || mainTimeLeft > 0) return; 
         isGoldenScore = true;
@@ -133,6 +145,43 @@ document.addEventListener('DOMContentLoaded', () => {
         saveState();
     }
 
+    //finalizar a luta automaticamente e dar um vencedor
+    function manuallyEndMatch() {
+        if (isMatchOver) return;
+    
+        const c1_panel = getCompetitorPanel('white');
+        const c2_panel = getCompetitorPanel('blue');
+    
+        const scores = {
+            white: {
+                ippon: parseInt(c1_panel.querySelector('.ippon').textContent),
+                wazari: parseInt(c1_panel.querySelector('.wazari').textContent),
+                yuko: parseInt(c1_panel.querySelector('.yuko').textContent),
+                shidos: c1_panel.querySelectorAll('.shido.active').length
+            },
+            blue: {
+                ippon: parseInt(c2_panel.querySelector('.ippon').textContent),
+                wazari: parseInt(c2_panel.querySelector('.wazari').textContent),
+                yuko: parseInt(c2_panel.querySelector('.yuko').textContent),
+                shidos: c2_panel.querySelectorAll('.shido.active').length
+            }
+        };
+    
+        let winner = null;
+    
+        if (scores.white.ippon > scores.blue.ippon) winner = 'white';
+        else if (scores.blue.ippon > scores.white.ippon) winner = 'blue';
+        else if (scores.white.wazari > scores.blue.wazari) winner = 'white';
+        else if (scores.blue.wazari > scores.white.wazari) winner = 'blue';
+        else if (scores.white.yuko > scores.blue.yuko) winner = 'white';
+        else if (scores.blue.yuko > scores.white.yuko) winner = 'blue';
+        else if (scores.white.shidos < scores.blue.shidos) winner = 'white';
+        else if (scores.blue.shidos < scores.white.shidos) winner = 'blue';
+        
+        endMatch(winner);
+    }
+    
+    //iniciar osaekomi
     function startOsaekomi(competitor) {
         if (isMatchOver || isOsaekomiTimerRunning) return;
         
@@ -149,15 +198,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (osaekomiTimeLeft === 5) addScore(osaekomiCompetitor, 'yuko');
             if (osaekomiTimeLeft === 10) {
-                isOsaekomiScoring = true;
                 addScore(osaekomiCompetitor, 'wazari');
                 removeScore(osaekomiCompetitor, 'yuko');
-                isOsaekomiScoring = false;
             }
         }, 1000);
     }
 
-
+    // resetar o visual do osaekomi
     function resetOsaekomiVisuals() {
         document.querySelectorAll('.osaekomi-progress-bar').forEach(bar => {
             bar.style.transition = 'width 0s';
@@ -166,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    //resetar o osaekomi
     function resetOsaekomi() {
         if (!isOsaekomiTimerRunning) return;
         clearInterval(osaekomiTimerInterval);
@@ -174,6 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetOsaekomiVisuals();
     }
 
+    //resetar luta para iniciar outra
     function resetAll() {
         isMatchOver = false;
         clearInterval(mainTimerInterval);
@@ -194,20 +243,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.shido').forEach(el => el.classList.remove('active'));
         saveState();
     }
-    
+
+    //função para adicionar pontuação
     function addScore(competitor, type) {
         if (isMatchOver) return;
         const panel = getCompetitorPanel(competitor);
         const scoreElement = panel.querySelector(`.${type}`);
         scoreElement.textContent = parseInt(scoreElement.textContent) + 1;
-
-        if (type === 'ippon') {
-            endMatch(competitor);
-        }
         
         saveState();
     }
     
+    //função para remover pontuação
     function removeScore(competitor, type) {
         if (isMatchOver) return;
         const scoreElement = getCompetitorPanel(competitor).querySelector(`.${type}`);
@@ -218,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    //função para adicionar shido
     function addShido(competitor) {
         if (isMatchOver) return;
         const panel = getCompetitorPanel(competitor);
@@ -228,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveState();
     }
 
+    //função para remover shido
     function removeShido(competitor) {
         if (isMatchOver) return;
         const activeShidos = getCompetitorPanel(competitor).querySelectorAll('.shido.active');
@@ -251,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     osaekomiBtnBlue.addEventListener('click', () => {
         if (!isOsaekomiTimerRunning) {
             startOsaekomi('white');
-        } else if (osaekomiCompetitor === 'white++++++++++++++++') {
+        } else if (osaekomiCompetitor === 'white') {
             resetOsaekomi();
         }
     });
@@ -282,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!event.shiftKey) {
             switch (key) {
                 case 'p': startStopMainTimer(); break;
+                case 'e': manuallyEndMatch(); break;
                 case 'r': resetAll(); break;
                 case 'q': resetOsaekomi(); break;
                 case 'a': addScore('white', 'ippon'); break;
@@ -307,9 +357,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // listeners para os botões de controle
     fullscreenBtn.addEventListener('click', () => { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); });
     document.addEventListener('fullscreenchange', () => body.classList.toggle('fullscreen', !!document.fullscreenElement));
     
+
     settingsBtn.addEventListener('click', () => settingsModal.style.display = 'flex');
     closeSettingsBtn.addEventListener('click', () => settingsModal.style.display = 'none');
     settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.style.display = 'none'; });
@@ -318,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
     closeHelpBtn.addEventListener('click', () => helpModal.style.display = 'none');
     helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.style.display = 'none'; });
 
+    //listerners para salvar o estado quando alterar competidor
     saveTimeBtn.addEventListener('click', () => {
         minutesInput.value = Math.max(0, parseInt(minutesInput.value) || 0);
         secondsInput.value = Math.max(0, Math.min(59, parseInt(secondsInput.value) || 0));
@@ -327,6 +380,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     c1Name.addEventListener('blur', saveState);
     c2Name.addEventListener('blur', saveState);
+    endMatchBtn.addEventListener('click', manuallyEndMatch);
+    
     
     loadState();
 });
